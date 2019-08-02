@@ -3,7 +3,7 @@ package grpcservices
 import (
 	"google.golang.org/grpc"
 
-	"github.com/truauth/truauth/pkg/grpc-identity"
+	grpcIdentity "github.com/truauth/truauth/pkg/grpc-identity"
 )
 
 // IdentityClient gRPC client for the identity service
@@ -11,10 +11,10 @@ type IdentityClient struct {
 	Client grpcIdentity.IdentityClient
 }
 
-// CreateGRPCClient creates a grpc identity client
+// CreateIdentityGRPCClient creates a grpc identity client
 func CreateIdentityGRPCClient(hostAddress string) *IdentityClient {
 	cc, err := grpc.Dial(hostAddress, grpc.WithInsecure())
-	if err != nil  {
+	if err != nil {
 		panic(err)
 	}
 
