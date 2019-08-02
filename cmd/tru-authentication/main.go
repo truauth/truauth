@@ -24,4 +24,7 @@ func main() {
 	gServe := gin.Default()
 
 	gServe.GET("/auth", req.AuthPage)
+	gServe.POST("/code", req.CreateAuthCode)
+	gServe.POST("/token", req.CreateAuthToken)
+	gServe.POST("/token-info", req.AuthTokenIntrospection)
 }
