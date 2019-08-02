@@ -8,7 +8,7 @@ import (
 
 // Init initializes the provided settings model
 func Init(model interface{}, name string) {
-	path := fmt.Sprintf("./%s.json", name)
+	path := fmt.Sprintf("../../%s.json", name)
 
 	file, _ := os.Open(path)
 	defer file.Close()
