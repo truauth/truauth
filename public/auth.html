@@ -1,0 +1,213 @@
+<html>
+
+<head>
+    <title>TruAuth Login</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
+</head>
+<style>
+    :root {
+        --page-radius: .8rem;
+    }
+
+    * {
+        outline: none
+    }
+
+    .login-container {
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .login {
+        border: 1px solid #d8dee2;
+        
+        border-radius: var(--page-radius);
+        background: white;
+
+        display: flex;
+        flex-direction: column;
+   
+        justify-items: center;
+        align-items: center;
+
+        height: 480px;
+        width: 360px;
+    }
+    .login__title {
+        font-size: 2rem;
+        display: flex;
+        justify-content: center;
+        margin-top: 3rem;
+    }
+    .login__form__content {
+        display: flex;
+        margin-top: 9rem;
+        flex: 1;
+        width: 80%;
+    }
+    .login__form__label {
+        font-weight: 200;
+        background-color: #ffffff;
+    }
+
+    .form__input-container > input {
+        height: 2.6rem;
+        width: 100%;
+
+        border-radius: .3rem;
+        border-width: 1px;
+        padding-left: .8rem;
+
+        font-size: 1.04rem;
+        font-weight: 300;
+        box-shadow: none;
+        border: 1px solid #d1d5da;
+        box-shadow: inset 0 1px 2px rgba(27,31,35,.075);
+    }
+
+    .form__input-container {
+        position: relative;
+    }
+
+    .login_btn-group {
+        display: flex;
+        flex-flow: row;
+        width: 100%;
+    }
+
+    .login_btn-group > * {
+        flex-grow: 1;
+        height: 3.5rem;
+
+        transition: all .5s;
+    }
+
+    .login__createbtn {
+        background-color: #245ab6;
+        color: white;
+
+        border:none;
+        border-radius:0px 0px 0px calc(var(--page-radius) - .1rem);
+    }
+
+    .login__form__loginbtn {
+        background: #159ceb;
+        color: white;
+
+        border: none;
+        border-radius: 0px 0px calc(var(--page-radius) - .1rem) 0px;
+    }
+
+    .login__form__loginbtn:hover, .login__createbtn:hover {
+        flex:5;
+        transition: all .8s;
+    }
+
+    .form__content__input-group {
+        display: flex;
+        flex-direction: column;
+
+        justify-content: space-between;
+        height: 10rem;
+        width: 100%;
+    }
+
+    .error-container {
+        position: absolute;
+        top: 150;
+
+        text-align: center;
+
+        background-color: #ffdce0;
+        color: #86181d;
+
+        border-color: rgba(27,31,35,.15);
+        border-radius: 5px;
+        border-style: solid;
+        border-width: 1px;
+
+        height: auto;
+        width: 360px;
+    }
+
+    .error-container__description {
+        padding: 15px;
+    }
+
+    body {
+        background-image: radial-gradient(#f3f3f3, #ffffff);
+        font-family: 'Roboto', sans-serif;
+
+        overflow-x:hidden;
+    }
+
+   @media screen and (max-width: 480px) {
+        .login {
+            width: 100%;
+            height: 100%;
+
+            border-radius: 0;
+        }
+        .login_btn-group > * {
+            border-radius: 0;
+        }
+        body {
+            margin: 0;
+        }
+    }
+
+    </style>
+
+<body>
+    <div class="application-main">
+        <main class="login-container">
+            {{if .Error}}
+                <div class="error-container">
+                    <div class="error-container__description">
+                        {{ .ErrorDescription }}
+                    </div>
+                </div>
+            {{ end }}
+            <form class="login" name="loginForm" action="/code" method="POST">
+                <div class="login__form__content">
+                    <div class="form__content__input-group">
+                        <div class="form__input-container">
+                            <span class="login__form__label">Username</span>
+                            <input id="username" name="username" type="text" />
+                        </div>
+                        <div class="form__input-container">
+                            <span class="login__form__label">Password</span>
+                            <input id="password" name="password" type="password" />
+                        </div>
+                    </div>
+                </div>
+                <div class="login_btn-group">
+                    <button onclick="handleCreate()" class="login__createbtn">
+                        Create
+                    </button>
+                    <button class="login__form__loginbtn">
+                        Login
+                    </button>
+                </div>
+        </main>
+    </div>
+    {{ .DevError }}
+    <script>
+        const urlParams = new URLSearchParams(window.location.search)
+        document.loginForm.action = `/code?${urlParams.toString()}`
+
+        function handleCreate(e) {
+            e.preventDefault()
+        }        
+
+        // if (window.location.pathname === '/session') {
+        //     window.location.search = ""
+        // }
+    </script>
+</body>
+
+</html>
