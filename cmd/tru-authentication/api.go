@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/truauth/truauth/pkg/lib"
+	lib "github.com/truauth/truauth/pkg/auth-lib"
 )
 
 // AuthPage serves the auth page
@@ -13,7 +13,7 @@ func (req *Request) AuthPage(ctx *gin.Context) {
 	authRequest, authError := lib.InitAuthCode(ctx.Request)
 
 	if authError != nil {
-		ctx.JSON(http.StatusUnauthorized, authError)		
+		ctx.JSON(http.StatusUnauthorized, authError)
 		return
 	}
 
@@ -24,6 +24,20 @@ func (req *Request) AuthPage(ctx *gin.Context) {
 	}
 
 	pageTemplate := req.SitePages.RetrieveFile("auth").Template
-	ctx.
+	pageTemplate.Execute(ctx.Writer, nil)
+}
+
+// CreateAuthCode creates an auth code
+func (req *Request) CreateAuthCode(ctx *gin.Context) {
+
+}
+
+// CreateAuthToken creates an auth token
+func (req *Request) CreateAuthToken(ctx *gin.Context) {
+
+}
+
+// AuthTokenIntrospection builds and returns a safe introspection view
+func (req *Request) AuthTokenIntrospection(ctx *gin.Context) {
 
 }
