@@ -3,14 +3,25 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/truauth/truauth/cmd/tru-authentication/identity-grpc"
-	"github.com/truauth/truauth/pkg/web-serve"
+	identitygrpc "github.com/truauth/truauth/cmd/tru-authentication/identity-grpc"
+	webserve "github.com/truauth/truauth/pkg/web-serve"
 )
 
-type request struct {
-	SitePages webserve.Files
+// Request struct used to pass request information
+type Request struct {
+	SitePages      webserve.Files
+	IdentityClient *identitygrpc.IdentityClient
 }
 
 func main() {
-	identityGRPCclient := identitygrpc.CreateGRPCClient("locahost:4820") // todo, arg this	
+	gRPCIdentityClient := identitygrpc.CreateGRPCClient("locahost:4820") // todo, arg this
+
+	req := &Request{
+		SitePages:      webserve.Init("auth"),
+		IdentityClient: gRPCIdentityClient,
+	}
+
+	gServe := gin.Default()
+
+	gServe.GET("/auth", req.AuthPage)
 }
