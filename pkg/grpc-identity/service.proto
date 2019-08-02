@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package grpcIdentity;
+
+service Identity {
+    rpc EnquireUserIdentity(UserIdentityRequest) returns (SafeUserIdentity) {}
+    rpc RegisterUserIdentity(UnsafeUserIdentity) returns (CreatedResponse) {}
+
+    rpc EnquireClientIdentity(ClientIdentityRequest) returns (ClientIdentity) {}
+    rpc RegisterClientIdentity(ClientIdentity) returns (CreatedResponse) {}
+}
+
+message ClientIdentityRequest {
+    string ID           = 1;
+    string Name         = 2;
+}
+
+message ClientIdentity {
+    string ID           = 1;
+    string Name         = 2;
+    string Secret       = 3;
+    string Callback     = 4;
+    string Redirect     = 5;
+    string RelationID   = 6;
+}
+
+message UserIdentityRequest {
+    string Username     = 1;
+    string Email        = 2;
+    string Password     = 3;
+}
+
+message SafeUserIdentity {
+    string Username     = 1;
+    string Email        = 2;
+    int32 Type          = 3;
+}
+
+message UnsafeUserIdentity {
+    string Username     = 1;
+    string Email        = 2;
+    string Password     = 3;
+    int32 Type          = 4;   
+}
+
+message CreatedResponse {
+    bool Success = 1;
+}
