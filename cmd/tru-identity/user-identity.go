@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	
-	"github.com/truauth/truauth/pkg/grpc-identity"
-	"github.com/truauth/truauth/pkg/identity-mapping"
+
 	"github.com/truauth/truauth/cmd/tru-identity/db"
+	grpcIdentity "github.com/truauth/truauth/pkg/grpc-identity"
+	mapping "github.com/truauth/truauth/pkg/identity-mapping"
 )
 
 // EnquireUserIdentity enquires about a user, retuns the found user (in a safe response) if found.
@@ -19,7 +19,7 @@ func (server *ServiceServer) EnquireUserIdentity(ctx context.Context, request *g
 	safeUser := mapping.FromUnsafeUserToSafe(user)
 
 	return safeUser, nil
-} 
+}
 
 // RegisterUserIdentity registers a user identity
 func (server *ServiceServer) RegisterUserIdentity(ctx context.Context, request *grpcIdentity.UnsafeUserIdentity) (*grpcIdentity.CreatedResponse, error) {
