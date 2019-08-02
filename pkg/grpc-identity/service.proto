@@ -4,10 +4,11 @@ package grpcIdentity;
 
 service Identity {
     rpc EnquireUserIdentity(UserIdentityRequest) returns (SafeUserIdentity) {}
-    rpc RegisterUserIdentity(UnsafeUserIdentity) returns (CreatedResponse) {}
+    rpc RegisterUserIdentity(UnsafeUserIdentity) returns (SuccessResponse) {}
+    rpc ValidateUserIdentity(UserIdentityRequest) returns (SuccessResponse) {}
 
     rpc EnquireClientIdentity(ClientIdentityRequest) returns (ClientIdentity) {}
-    rpc RegisterClientIdentity(ClientIdentity) returns (CreatedResponse) {}
+    rpc RegisterClientIdentity(ClientIdentity) returns (SuccessResponse) {}
 }
 
 message ClientIdentityRequest {
@@ -43,6 +44,6 @@ message UnsafeUserIdentity {
     int32 Type          = 4;   
 }
 
-message CreatedResponse {
+message SuccessResponse {
     bool Success = 1;
 }
