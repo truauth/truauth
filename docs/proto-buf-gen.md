@@ -1,0 +1,1 @@
+when in doubt, read this https://stackoverflow.com/questions/28099004/unable-to-build-protobuf-to-go-endpoint
