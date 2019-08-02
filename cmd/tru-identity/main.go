@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net"
 
 	"google.golang.org/grpc"
@@ -23,6 +24,7 @@ func main() {
 	})
 	reflection.Register(grpcServer)
 
+	fmt.Println("server started on port 4840")
 	if serveErr := grpcServer.Serve(listener); err != nil {
 		panic(serveErr)
 	}
