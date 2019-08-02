@@ -1,4 +1,4 @@
-package identitygrpc
+package grpcservices
 
 import (
 	"google.golang.org/grpc"
@@ -12,7 +12,7 @@ type IdentityClient struct {
 }
 
 // CreateGRPCClient creates a grpc identity client
-func CreateGRPCClient(hostAddress string) *IdentityClient {
+func CreateIdentityGRPCClient(hostAddress string) *IdentityClient {
 	cc, err := grpc.Dial(hostAddress, grpc.WithInsecure())
 	if err != nil  {
 		panic(err)
