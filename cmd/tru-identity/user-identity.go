@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/truauth/truauth/cmd/tru-identity/db"
 	grpcIdentity "github.com/truauth/truauth/pkg/grpc-identity"
 	mapping "github.com/truauth/truauth/pkg/identity-mapping"
@@ -22,11 +24,40 @@ func (server *ServiceServer) EnquireUserIdentity(ctx context.Context, request *g
 }
 
 // RegisterUserIdentity registers a user identity
-func (server *ServiceServer) RegisterUserIdentity(ctx context.Context, request *grpcIdentity.UnsafeUserIdentity) (*grpcIdentity.CreatedResponse, error) {
+func (server *ServiceServer) RegisterUserIdentity(ctx context.Context, request *grpcIdentity.UnsafeUserIdentity) (*grpcIdentity.SuccessResponse, error) {
 	pgUserReq := &db.UserDbRequest{server.PGCreds}
-	err := pgUserReq.DirectCreate(request)
 
-	return &grpcIdentity.CreatedResponse{
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	request.Password = string(hashedPassword) // possibly rething this mutation?
+
+	err = pgUserReq.DirectCreate(request)
+
+	return &grpcIdentity.SuccessResponse{
 		Success: err != nil,
 	}, err
+}
+
+// ValidateUserIdentity validates a user identity, returns success response if passed
+func (server *ServiceServer) ValidateUserIdentity(ctx context.Context, request *grpcIdentity.UserIdentityRequest) (*grpcIdentity.SuccessResponse, error) {
+	pgUserReq := &db.UserDbRequest{server.PGCreds}
+	user, err := pgUserReq.FindByUsername(request.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	if request.GetPassword() == user.GetPassword() { // some parts of the dev system are not using bcrypt. (todo: disable for prod)
+		return &grpcIdentity.SuccessResponse{
+			Success: true,
+		}, nil
+	}
+
+	bcryptErr := bcrypt.CompareHashAndPassword([]byte(user.GetPassword()), []byte(request.GetPassword()))
+
+	return &grpcIdentity.SuccessResponse{
+		Success: bcryptErr != nil,
+	}, bcryptErr
 }
