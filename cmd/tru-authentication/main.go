@@ -1,34 +1,47 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 
+	grpcservices "github.com/truauth/truauth/cmd/tru-authentication/grpcservices"
+	"github.com/truauth/truauth/pkg/middleware"
 	"github.com/truauth/truauth/pkg/settings"
-
-	identitygrpc "github.com/truauth/truauth/cmd/tru-authentication/identity-grpc"
 	webserve "github.com/truauth/truauth/pkg/web-serve"
 )
 
-// Request struct used to pass request information
-type Request struct {
+// Defaults struct used to pass request information
+type Defaults struct {
 	SitePages      webserve.Files
-	IdentityClient *identitygrpc.IdentityClient
+	IdentityClient *grpcservices.IdentityClient
 	Environment    *settings.Environment
 	Configuration  *settings.Configuration
 }
 
 func main() {
-	gRPCIdentityClient := identitygrpc.CreateGRPCClient("locahost:4820") // todo, arg this
+	config := &settings.Configuration{}
+	settings.Init(config, "configuration")
 
-	req := &Request{
+	env := &settings.Environment{}
+	settings.Init(env, "env")
+
+	gRPCIdentityClient := grpcservices.CreateIdentityGRPCClient(config.IdentityServiceAddress)
+
+	req := &Defaults{
 		SitePages:      webserve.Init("auth"),
 		IdentityClient: gRPCIdentityClient,
+		Environment:    env,
+		Configuration:  config,
 	}
 
-	gServe := gin.Default()
+	router := gin.Default()
 
-	gServe.GET("/auth", req.AuthPage)
-	gServe.POST("/code", req.CreateAuthCode)
-	gServe.POST("/token", req.CreateAuthToken)
-	gServe.POST("/token-info", req.AuthTokenIntrospection)
+	router.GET("/auth", req.AuthPage)
+	router.POST("/code", req.CreateAuthCode)
+	router.POST("/token", middleware.Register(req.CreateAuthToken, middleware.EnableCORS))
+	router.POST("/token-info", middleware.Register(req.AuthTokenIntrospection, middleware.EnableCORS))
+
+	fmt.Println("Server Started on Port 4820")
+	router.Run(":4820") // todo, arg this
 }
