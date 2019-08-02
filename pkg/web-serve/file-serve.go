@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"text/template"
-	
+
 	"github.com/truauth/truauth/pkg/minify"
 )
 
@@ -13,7 +13,7 @@ func Init(fileNames ...string) Files {
 	files := Files{}
 
 	for _, fileName := range fileNames {
-		path := fmt.Sprintf("./public/%s.html", fileName)
+		path := fmt.Sprintf("../../public/%s.html", fileName)
 		data, err := ioutil.ReadFile(path)
 
 		if err != nil {
@@ -32,7 +32,7 @@ func Init(fileNames ...string) Files {
 		byteData := []byte(minifiedData)
 
 		files[fileName] = &File{
-			Data: &byteData,
+			Data:     &byteData,
 			Template: template,
 		}
 	}
