@@ -14,7 +14,7 @@ import (
 )
 
 // AuthPage serves the auth page
-func (req *Request) AuthPage(ctx *gin.Context) {
+func (req *Defaults) AuthPage(ctx *gin.Context) {
 	authRequest, authError := lib.InitAuthCode(ctx.Request)
 
 	if authError != nil {
@@ -33,7 +33,7 @@ func (req *Request) AuthPage(ctx *gin.Context) {
 }
 
 // CreateAuthCode creates an auth code
-func (req *Request) CreateAuthCode(ctx *gin.Context) {
+func (req *Defaults) CreateAuthCode(ctx *gin.Context) {
 	authRequest, err := lib.InitAuthCode(ctx.Request)
 
 	if err != nil {
@@ -48,12 +48,21 @@ func (req *Request) CreateAuthCode(ctx *gin.Context) {
 	}
 
 	credentials := helpers.MarshalCredentialsFromForm(ctx.Request)
+
+	// check & resolve the identity
 	if resp, err := req.IdentityClient.Client.ValidateUserIdentity(ctx, credentials); err != nil || !resp.GetSuccess() {
 		pageTemplate := req.SitePages.RetrieveFile("auth").Template
 
+		descript := "Error: Invalid Credentials"
+
+		if err != nil {
+			descript = "An Internal Error has Occurred While Logging In"
+		}
+
 		pageTemplate.Execute(ctx.Writer, webserve.ErrorTemplate{
 			Error:            true,
-			ErrorDescription: "invalid credentials",
+			ErrorDescription: descript,
+			DevError:         webserve.DevError(err.Error()),
 		})
 		return
 	}
@@ -65,7 +74,7 @@ func (req *Request) CreateAuthCode(ctx *gin.Context) {
 }
 
 // CreateAuthToken creates an auth token
-func (req *Request) CreateAuthToken(ctx *gin.Context) {
+func (req *Defaults) CreateAuthToken(ctx *gin.Context) {
 	token, err := lib.InitAuthTokenRequest(ctx.Request)
 	if exit := helpers.CheckResponseError(ctx, err, token.RedirectURI, ""); exit {
 		return
@@ -80,7 +89,7 @@ func (req *Request) CreateAuthToken(ctx *gin.Context) {
 }
 
 // AuthTokenIntrospection builds and returns a safe introspection view
-func (req *Request) AuthTokenIntrospection(ctx *gin.Context) {
+func (req *Defaults) AuthTokenIntrospection(ctx *gin.Context) {
 	introspectReq, err := lib.InitAccessTokenIntrospectionRequest(ctx.Request)
 	if exit := helpers.CheckResponseError(ctx, err, "", ""); exit {
 		return
