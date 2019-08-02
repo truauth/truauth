@@ -1,0 +1,26 @@
+package lib
+
+// AccessTokenResponse access token used to grant resource access
+type AccessTokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	TokenType    TokenType `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+	Scope        string `json:"scope"`
+}
+
+// CreateAccessTokenResponse creates an access token response
+func CreateAccessTokenResponse(
+	signedToken string,
+	tokenType TokenType, 
+	expiresIn int,
+	refreshToken string,
+) *AccessTokenResponse {
+	return &AccessTokenResponse{ // todo: support rest of stuff
+		AccessToken: signedToken,
+		TokenType: tokenType,
+		ExpiresIn: expiresIn,
+		RefreshToken: refreshToken,
+	}
+}
+
