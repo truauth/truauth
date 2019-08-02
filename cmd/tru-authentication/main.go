@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 
+	"github.com/truauth/truauth/pkg/settings"
+
 	identitygrpc "github.com/truauth/truauth/cmd/tru-authentication/identity-grpc"
 	webserve "github.com/truauth/truauth/pkg/web-serve"
 )
@@ -11,6 +13,8 @@ import (
 type Request struct {
 	SitePages      webserve.Files
 	IdentityClient *identitygrpc.IdentityClient
+	Environment    *settings.Environment
+	Configuration  *settings.Configuration
 }
 
 func main() {
