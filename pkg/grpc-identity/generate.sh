@@ -1,0 +1,1 @@
+protoc -I grpc-identity/ grpc-identity/service.proto --go_out=plugins=grpc:grpc-identity
