@@ -3,8 +3,8 @@ package db
 import (
 	"database/sql"
 
+	grpcIdentity "github.com/truauth/truauth/pkg/grpc-identity"
 	"github.com/truauth/truauth/pkg/pgdb"
-	"github.com/truauth/truauth/pkg/grpc-identity"
 )
 
 // UserDbRequest request made to connect to pgdb
@@ -22,7 +22,7 @@ func (req *UserDbRequest) FindByUsername(username string) (*grpcIdentity.UnsafeU
 
 	model := &grpcIdentity.UnsafeUserIdentity{}
 
-	err := row.Scan(&model.Username, &model.Password, &model.Type, &model.Email)
+	err := row.Scan(&model.Username, &model.Password, &model.Email, &model.Type)
 
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (req *UserDbRequest) FindByEmail(email string) (*grpcIdentity.UnsafeUserIde
 	return model, nil
 }
 
-// DirectCreate creates a user identity given the identity 
+// DirectCreate creates a user identity given the identity
 func (req *UserDbRequest) DirectCreate(user *grpcIdentity.UnsafeUserIdentity) error {
 	db := pgdb.CreateSession(req.PGCreds)
 	if db == nil {
