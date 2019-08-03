@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	listener, err := net.Listen("tcp", ":4840")
+	listener, err := net.Listen("tcp", ":3005")
 	if err != nil {
 		panic(err)
 	}
@@ -24,8 +24,10 @@ func main() {
 	})
 	reflection.Register(grpcServer)
 
-	fmt.Println("server started on port 4840")
+	fmt.Println("server started on port 3005")
 	if serveErr := grpcServer.Serve(listener); err != nil {
 		panic(serveErr)
 	}
+
+	grpcServer.Serve(listener)
 }
