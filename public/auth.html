@@ -199,14 +199,6 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search)
         document.loginForm.action = `/code?${urlParams.toString()}`
-
-        function handleCreate(e) {
-            e.preventDefault()
-        }        
-
-        // if (window.location.pathname === '/session') {
-        //     window.location.search = ""
-        // }
     </script>
 </body>
 
