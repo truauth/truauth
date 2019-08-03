@@ -1,4 +1,4 @@
 {
 	"expireDuration": 3600,
-	"identityServiceAddress": "http://localhost:4822"
+	"identityServiceAddress": "localhost:3005"
 }
