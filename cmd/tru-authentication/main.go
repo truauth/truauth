@@ -46,5 +46,5 @@ func main() {
 	router.POST("/token-info", middleware.Register(req.AuthTokenIntrospection, middleware.EnableCORS))
 
 	fmt.Println("Server Started on Port 4820")
-	router.Run(*httpPort) // todo, arg this
+	router.Run(*httpPort)
 }
