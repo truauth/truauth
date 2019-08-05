@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,8 @@ type Defaults struct {
 }
 
 func main() {
+	httpPort := flag.String("p", "4820", "specificed port to start the http server on")
+
 	config := &settings.Configuration{}
 	settings.Init(config, "configuration")
 
@@ -43,5 +46,5 @@ func main() {
 	router.POST("/token-info", middleware.Register(req.AuthTokenIntrospection, middleware.EnableCORS))
 
 	fmt.Println("Server Started on Port 4820")
-	router.Run(":4820") // todo, arg this
+	router.Run(*httpPort) // todo, arg this
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 
@@ -12,7 +13,9 @@ import (
 )
 
 func main() {
-	listener, err := net.Listen("tcp", ":3005")
+	tcpPort := flag.String("p", "3005", "specified port to start the gRPC server on")
+
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", *tcpPort))
 	if err != nil {
 		panic(err)
 	}
@@ -24,7 +27,7 @@ func main() {
 	})
 	reflection.Register(grpcServer)
 
-	fmt.Println("server started on port 3005")
+	fmt.Println(fmt.Sprintf("gRPC service started on port %s", *tcpPort))
 	if serveErr := grpcServer.Serve(listener); err != nil {
 		panic(serveErr)
 	}
