@@ -10,6 +10,7 @@ import (
 
 	lib "github.com/truauth/truauth/pkg/auth-lib"
 	grpcIdentity "github.com/truauth/truauth/pkg/grpc-identity"
+	grpcAuthorization "github.com/truauth/truauth/pkg/grpc-authorization"
 	webserve "github.com/truauth/truauth/pkg/web-serve"
 )
 
@@ -28,7 +29,7 @@ func (req *Defaults) AuthPage(ctx *gin.Context) {
 		return
 	}
 
-	pageTemplate := req.SitePages.RetrieveFile("auth").Template
+	pageTemplate := req.SitePages.RetrieveFile("login").Template
 	pageTemplate.Execute(ctx.Writer, nil)
 }
 
@@ -51,7 +52,7 @@ func (req *Defaults) CreateAuthCode(ctx *gin.Context) {
 
 	// check & resolve the identity
 	if resp, err := req.IdentityClient.Client.ValidateUserIdentity(ctx, credentials); err != nil || !resp.GetSuccess() {
-		pageTemplate := req.SitePages.RetrieveFile("auth").Template
+		pageTemplate := req.SitePages.RetrieveFile("login").Template
 
 		descript := "Error: Invalid Credentials"
 
@@ -68,6 +69,9 @@ func (req *Defaults) CreateAuthCode(ctx *gin.Context) {
 	}
 
 	token := lib.CreateCodeToken(authRequest, credentials.GetUsername()).ToJWT(req.Environment.JWTSecret)
+
+	// todo: check if already agreed to conditions
+		// if not, return the "agree to conditions page"
 
 	redirect := fmt.Sprintf("%s?code=%s&state=%s", authRequest.RedirectURI, token, authRequest.State)
 	http.Redirect(ctx.Writer, ctx.Request, redirect, http.StatusFound)
