@@ -11,7 +11,7 @@ import (
 )
 
 // EnquireUserIdentity enquires about a user, retuns the found user (in a safe response) if found.
-func (server *ServiceServer) EnquireUserIdentity(ctx context.Context, request *grpcIdentity.UserIdentityRequest) (*grpcIdentity.SafeUserIdentity, error) {
+func (server *ServiceRequest) EnquireUserIdentity(ctx context.Context, request *grpcIdentity.UserIdentityRequest) (*grpcIdentity.SafeUserIdentity, error) {
 	pgUserReq := &db.UserDbRequest{server.PGCreds}
 	user, err := pgUserReq.FindByUsername(request.Username)
 	if err != nil {
@@ -24,7 +24,7 @@ func (server *ServiceServer) EnquireUserIdentity(ctx context.Context, request *g
 }
 
 // RegisterUserIdentity registers a user identity
-func (server *ServiceServer) RegisterUserIdentity(ctx context.Context, request *grpcIdentity.UnsafeUserIdentity) (*grpcIdentity.SuccessResponse, error) {
+func (server *ServiceRequest) RegisterUserIdentity(ctx context.Context, request *grpcIdentity.UnsafeUserIdentity) (*grpcIdentity.SuccessResponse, error) {
 	pgUserReq := &db.UserDbRequest{server.PGCreds}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
@@ -42,7 +42,7 @@ func (server *ServiceServer) RegisterUserIdentity(ctx context.Context, request *
 }
 
 // ValidateUserIdentity validates a user identity, returns success response if passed
-func (server *ServiceServer) ValidateUserIdentity(ctx context.Context, request *grpcIdentity.UserIdentityRequest) (*grpcIdentity.SuccessResponse, error) {
+func (server *ServiceRequest) ValidateUserIdentity(ctx context.Context, request *grpcIdentity.UserIdentityRequest) (*grpcIdentity.SuccessResponse, error) {
 	pgUserReq := &db.UserDbRequest{server.PGCreds}
 	user, err := pgUserReq.FindByUsername(request.Username)
 	if err != nil {
