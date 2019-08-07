@@ -8,7 +8,7 @@ import (
 )
 
 // EnquireClientIdentity enquires information about the client identity
-func (server *ServiceServer) EnquireClientIdentity(ctx context.Context, request *grpcIdentity.ClientIdentityRequest) (*grpcIdentity.ClientIdentity, error) {
+func (server *ServiceRequest) EnquireClientIdentity(ctx context.Context, request *grpcIdentity.ClientIdentityRequest) (*grpcIdentity.ClientIdentity, error) {
 	pgClientReq := &db.ClientDbRequest{PGCreds: server.PGCreds}
 	client, err := pgClientReq.FindByID(request.ID)
 
@@ -20,7 +20,7 @@ func (server *ServiceServer) EnquireClientIdentity(ctx context.Context, request 
 }
 
 // RegisterClientIdentity registers a client provided the client identity
-func (server *ServiceServer) RegisterClientIdentity(ctx context.Context, request *grpcIdentity.ClientIdentity) (*grpcIdentity.SuccessResponse, error) {
+func (server *ServiceRequest) RegisterClientIdentity(ctx context.Context, request *grpcIdentity.ClientIdentity) (*grpcIdentity.SuccessResponse, error) {
 	pgClientReq := &db.ClientDbRequest{PGCreds: server.PGCreds}
 	err := pgClientReq.DirectCreate(request)
 
