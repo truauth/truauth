@@ -13,7 +13,7 @@ func Init(fileNames ...string) Files {
 	files := Files{}
 
 	for _, fileName := range fileNames {
-		path := fmt.Sprintf("../../public/%s.html", fileName)
+		path := fmt.Sprintf("../../static/%s.html", fileName)
 		data, err := ioutil.ReadFile(path)
 
 		if err != nil {
