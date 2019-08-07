@@ -14,29 +14,16 @@ import (
 
 // Defaults struct used to pass request information
 type Defaults struct {
-	SitePages      webserve.Files
-	IdentityClient *grpcservices.IdentityClient
-	Environment    *settings.Environment
-	Configuration  *settings.Configuration
+	SitePages           webserve.Files
+	IdentityClient      *grpcservices.IdentityClient
+	AuthorizationClient *grpcservices.AuthorizationClient
+	Environment         *settings.Environment
+	Configuration       *settings.Configuration
 }
 
 func main() {
 	httpPort := flag.String("p", "4820", "specificed port to start the http server on")
-
-	config := &settings.Configuration{}
-	settings.Init(config, "configuration")
-
-	env := &settings.Environment{}
-	settings.Init(env, "env")
-
-	gRPCIdentityClient := grpcservices.CreateIdentityGRPCClient(config.IdentityServiceAddress)
-
-	req := &Defaults{
-		SitePages:      webserve.Init("auth"),
-		IdentityClient: gRPCIdentityClient,
-		Environment:    env,
-		Configuration:  config,
-	}
+	req := initDefaults()
 
 	router := gin.Default()
 
@@ -47,4 +34,23 @@ func main() {
 
 	fmt.Println(fmt.Sprintf(" Server started on port %s", *httpPort))
 	router.Run(*httpPort)
+}
+
+func initDefaults() *Defaults {
+	config := &settings.Configuration{}
+	settings.Init(config, "configuration")
+
+	env := &settings.Environment{}
+	settings.Init(env, "env")
+
+	gRPCIdentityClient := grpcservices.CreateIdentityGRPCClient(config.IdentityServiceAddress)
+	gRPCAuthorizationClient := grpcservices.CreateAuthorizationGRPCClient(config.AuthorizationServiceAddress)
+
+	return &Defaults{
+		SitePages:           webserve.Init("login"),
+		IdentityClient:      gRPCIdentityClient,
+		AuthorizationClient: gRPCAuthorizationClient,
+		Environment:         env,
+		Configuration:       config,
+	}
 }
