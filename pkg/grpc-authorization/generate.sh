@@ -1,0 +1,1 @@
+protoc -I grpc-authorization/ grpc-authorization/service.proto --go_out=plugins=grpc:grpc-authorization
