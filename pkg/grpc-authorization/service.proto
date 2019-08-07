@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package grpcAuthorization;
+
+service Authorization {
+    rpc AuthorizeUser(AuthorizeUserRequest) returns(SuccessResponse) {}
+    rpc IsUserAuthorized(AuthorizeUserRequest) returns(SuccessResponse) {}
+}
+
+message AuthorizeUserRequest {
+    string UserID       = 1;
+    string ClientID     = 2;
+}
+
+message SuccessResponse {
+    bool Success = 1;
+}
