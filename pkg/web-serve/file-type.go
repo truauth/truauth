@@ -1,6 +1,7 @@
 package webserve
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -18,15 +19,15 @@ type File struct {
 // Files map of files
 type Files map[string]*File
 
-// ErrorTemplate template for the error
-type ErrorTemplate struct {
+// OutTemplate template for the error
+type OutTemplate struct {
 	Error            bool
 	ErrorDescription string
-	DevError         string
+	Script           string
 }
 
 type Session struct {
-	Error ErrorTemplate
+	Error OutTemplate
 }
 
 func MarshalSession(req *http.Request) *Session {
@@ -37,7 +38,7 @@ func MarshalSession(req *http.Request) *Session {
 	}
 
 	return &Session{
-		ErrorTemplate{
+		OutTemplate{
 			Error:            err,
 			ErrorDescription: utilities.GetParam(req, "error_description"),
 		},
@@ -53,6 +54,12 @@ func DevError(message string) string {
 	return fmt.Sprintf("<script> console.error(`Error: Api Service: %s`) </script>", message)
 }
 
-// func (session *Session) ToEncodedURI() string {
-// 	return fmt.Sprintf("error=%s&")
-// }
+// WriteSessionStorage writes the desired josn content to session storage
+func WriteSessionStorage(key string, jsonContent interface{}) string {
+	jsonStr, err := json.Marshal(jsonContent)
+	if err != nil {
+		return DevError("Web Serve Error: File Type: Error occured while writing to session storage")
+	}
+
+	return fmt.Sprintf("<script> sessionStorage.setItem('%s', '%s') </script> ", key, jsonStr)
+}
