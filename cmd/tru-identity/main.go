@@ -4,10 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"time"
 
 	grpcIdentity "github.com/truauth/truauth/pkg/grpc-identity"
 	"github.com/truauth/truauth/pkg/pgdb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -19,17 +21,20 @@ func main() {
 		panic(err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
+		PermitWithoutStream: true,
+		MinTime:             1 * time.Minute,
+	}))
 
 	grpcIdentity.RegisterIdentityServer(grpcServer, &ServiceRequest{
 		PGCreds: pgdb.FetchCreds(),
 	})
 	reflection.Register(grpcServer)
 
+	fmt.Println(fmt.Sprintf("gRPC service started on port %s", *tcpPort))
 	if serveErr := grpcServer.Serve(listener); err != nil {
 		panic(serveErr)
 	}
 
-	fmt.Println(fmt.Sprintf("gRPC service started on port %s", *tcpPort))
 	grpcServer.Serve(listener)
 }
