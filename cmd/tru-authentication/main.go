@@ -22,7 +22,7 @@ type Defaults struct {
 }
 
 func main() {
-	httpPort := flag.String("p", "4820", "specificed port to start the http server on")
+	httpPort := flag.String("p", ":4820", "specificed port to start the http server on")
 	req := initDefaults()
 
 	router := gin.Default()
@@ -31,23 +31,24 @@ func main() {
 	router.POST("/code", req.CreateAuthCode)
 	router.POST("/token", middleware.Register(req.CreateAuthToken, middleware.EnableCORS))
 	router.POST("/token-info", middleware.Register(req.AuthTokenIntrospection, middleware.EnableCORS))
+	router.POST("/approve-conditions", middleware.Register(req.HandleAcceptConditions, middleware.EnableCORS))
 
-	fmt.Println(fmt.Sprintf(" Server started on port %s", *httpPort))
+	fmt.Println(fmt.Sprintf("Server started on port %s", *httpPort))
 	router.Run(*httpPort)
 }
 
 func initDefaults() *Defaults {
 	config := &settings.Configuration{}
-	settings.Init(config, "configuration")
-
 	env := &settings.Environment{}
+
+	settings.Init(config, "configuration")
 	settings.Init(env, "env")
 
 	gRPCIdentityClient := grpcservices.CreateIdentityGRPCClient(config.IdentityServiceAddress)
 	gRPCAuthorizationClient := grpcservices.CreateAuthorizationGRPCClient(config.AuthorizationServiceAddress)
 
 	return &Defaults{
-		SitePages:           webserve.Init("login"),
+		SitePages:           webserve.Init("login", "conditions"),
 		IdentityClient:      gRPCIdentityClient,
 		AuthorizationClient: gRPCAuthorizationClient,
 		Environment:         env,
