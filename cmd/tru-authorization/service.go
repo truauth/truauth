@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"strings"
 
 	"github.com/truauth/truauth/cmd/tru-authorization/db"
 	grpcAuthorization "github.com/truauth/truauth/pkg/grpc-authorization"
@@ -14,33 +17,27 @@ func (service *ServiceRequest) AuthorizeUser(ctx context.Context, request *grpcA
 	}
 
 	user, err := dbRequest.FindByUserID(request.UserID)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
 
 	if user == nil { // just create
 		err = dbRequest.Create(&db.AuthorizationColumn{
-			ID:                request.UserID,
-			AuthorizedClients: []string{request.ClientID},
+			UserId:            request.UserID,
+			AuthorizedClients: request.ClientID,
 		})
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	updatedClients := make([]string, len(user.AuthorizedClients)+1)
-	for idx := 0; idx < len(user.AuthorizedClients); idx++ {
-		if user.AuthorizedClients[idx] == request.ClientID {
-			return &grpcAuthorization.SuccessResponse{
-				Success: true,
-			}, nil
-		}
-		updatedClients[idx] = user.AuthorizedClients[idx]
+	if strings.Contains(user.AuthorizedClients, request.ClientID) {
+		return &grpcAuthorization.SuccessResponse{
+			Success: true,
+		}, nil
 	}
 
-	updatedClients[len(user.AuthorizedClients)+1] = request.ClientID
-	user.AuthorizedClients = updatedClients
-
+	user.AuthorizedClients = fmt.Sprintf("%s, %s", user.AuthorizedClients, request.ClientID)
 	err = dbRequest.Update(user)
 
 	return nil, err
@@ -48,5 +45,24 @@ func (service *ServiceRequest) AuthorizeUser(ctx context.Context, request *grpcA
 
 // IsUserAuthorized checks if the requested user & client are authorized
 func (service *ServiceRequest) IsUserAuthorized(ctx context.Context, request *grpcAuthorization.AuthorizeUserRequest) (*grpcAuthorization.SuccessResponse, error) {
-	return nil, nil
+	dbRequest := &db.AuthDbRequest{
+		PGCreds: service.PGCreds,
+	}
+
+	user, err := dbRequest.FindByUserID(request.UserID)
+	if err != nil {
+		return &grpcAuthorization.SuccessResponse{
+			Success: false,
+		}, err
+	}
+
+	if strings.Contains(user.AuthorizedClients, request.ClientID) { // we already have it
+		return &grpcAuthorization.SuccessResponse{
+			Success: true,
+		}, nil
+	}
+
+	return &grpcAuthorization.SuccessResponse{
+		Success: false,
+	}, nil
 }
