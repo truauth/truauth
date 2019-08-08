@@ -9,8 +9,8 @@ import (
 	"github.com/truauth/truauth/cmd/tru-authentication/helpers"
 
 	lib "github.com/truauth/truauth/pkg/auth-lib"
-	grpcIdentity "github.com/truauth/truauth/pkg/grpc-identity"
 	grpcAuthorization "github.com/truauth/truauth/pkg/grpc-authorization"
+	grpcIdentity "github.com/truauth/truauth/pkg/grpc-identity"
 	webserve "github.com/truauth/truauth/pkg/web-serve"
 )
 
@@ -60,18 +60,36 @@ func (req *Defaults) CreateAuthCode(ctx *gin.Context) {
 			descript = "An Internal Error has Occurred While Logging In"
 		}
 
-		pageTemplate.Execute(ctx.Writer, webserve.ErrorTemplate{
+		pageTemplate.Execute(ctx.Writer, webserve.OutTemplate{
 			Error:            true,
 			ErrorDescription: descript,
-			DevError:         webserve.DevError(err.Error()),
+			Script:           webserve.DevError(err.Error()),
 		})
 		return
 	}
 
 	token := lib.CreateCodeToken(authRequest, credentials.GetUsername()).ToJWT(req.Environment.JWTSecret)
 
-	// todo: check if already agreed to conditions
-		// if not, return the "agree to conditions page"
+	grpcAuthRequest := &grpcAuthorization.AuthorizeUserRequest{
+		UserID:   credentials.Username,
+		ClientID: authRequest.ClientID,
+	}
+
+	// check if user has accepted agreement on conditions page
+	// returns condition page if not.
+	if resp, err := req.AuthorizationClient.Client.IsUserAuthorized(ctx, grpcAuthRequest); err != nil || !resp.GetSuccess() {
+		temp := req.SitePages.RetrieveFile("conditions")
+		if temp == nil {
+			ctx.JSON(http.StatusInternalServerError, lib.CreateError("internal server error", "conditions page not found"))
+			return
+		}
+
+		temp.Template.Execute(ctx.Writer, webserve.OutTemplate{
+			Script: webserve.WriteSessionStorage("_truauth.clientIntro", token),
+		})
+
+		return
+	}
 
 	redirect := fmt.Sprintf("%s?code=%s&state=%s", authRequest.RedirectURI, token, authRequest.State)
 	http.Redirect(ctx.Writer, ctx.Request, redirect, http.StatusFound)
@@ -124,4 +142,41 @@ func (req *Defaults) AuthTokenIntrospection(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, authToken.MapIntrospectionResponse())
+}
+
+// HandleAcceptConditions handles the user accepting the conditions
+func (req *Defaults) HandleAcceptConditions(ctx *gin.Context) {
+	token, exists := ctx.GetQuery("t")
+	authRequest, err := lib.InitAuthCode(ctx.Request)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, lib.CreateError("bad request", "token query is not present in request"))
+		return
+	}
+
+	decodedCodeToken := lib.DecodeCodeJWT(req.Environment.JWTSecret, token)
+	if decodedCodeToken.ClientID == "" || decodedCodeToken.UserID == "" {
+		ctx.JSON(http.StatusBadRequest, lib.CreateError("bad request", "invalid jtw body"))
+		return
+	}
+
+	updatedToken := decodedCodeToken.ToJWT(req.Environment.JWTSecret) // don't really like this.
+
+	grpcAuthRequest := &grpcAuthorization.AuthorizeUserRequest{
+		UserID:   decodedCodeToken.UserID,
+		ClientID: authRequest.ClientID,
+	}
+
+	if resp, err := req.AuthorizationClient.Client.AuthorizeUser(ctx, grpcAuthRequest); err != nil || !resp.GetSuccess() {
+		ctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	redirect := fmt.Sprintf("%s?code=%s&state=%s", authRequest.RedirectURI, updatedToken, authRequest.State)
+	http.Redirect(ctx.Writer, ctx.Request, redirect, http.StatusFound)
 }
