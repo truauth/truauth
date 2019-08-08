@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 
 	grpcAuthorization "github.com/truauth/truauth/pkg/grpc-authorization"
 	"github.com/truauth/truauth/pkg/pgdb"
@@ -19,7 +21,10 @@ func main() {
 		panic(err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
+		PermitWithoutStream: true,
+		MinTime:             1 * time.Minute,
+	}))
 
 	grpcAuthorization.RegisterAuthorizationServer(grpcServer, &ServiceRequest{
 		PGCreds: pgdb.FetchCreds(),
