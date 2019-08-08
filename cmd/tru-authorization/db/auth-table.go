@@ -13,12 +13,12 @@ type AuthDbRequest struct {
 
 // AuthorizationColumn authorization table response
 type AuthorizationColumn struct {
-	ID                string
-	AuthorizedClients []string
+	UserId            string
+	AuthorizedClients string
 }
 
 // FindByUserID returns an authorized response
-func (req *AuthDbRequest) FindByUserID(ID string) (*AuthorizationColumn, error) {
+func (req *AuthDbRequest) FindByUserID(userID string) (*AuthorizationColumn, error) {
 	db := pgdb.CreateSession(req.PGCreds)
 
 	if db == nil {
@@ -26,19 +26,16 @@ func (req *AuthDbRequest) FindByUserID(ID string) (*AuthorizationColumn, error) 
 	}
 	defer db.Close()
 
-	sqlQuery := `Select * from authorization_information where id = $1`
-	row := db.QueryRow(sqlQuery, ID)
+	sqlQuery := `Select * from authorization_information where userId = $1`
+	row := db.QueryRow(sqlQuery, userID)
 
 	details := &AuthorizationColumn{}
-
-	switch err := row.Scan(&details.ID, &details.AuthorizedClients); err {
-	case sql.ErrNoRows:
-		return nil, sql.ErrNoRows
-	case nil:
-		return details, nil
-	default:
-		panic(err)
+	err := row.Scan(&details.UserId, &details.AuthorizedClients)
+	if err != nil {
+		return nil, err
 	}
+
+	return details, nil
 }
 
 // Create creates a authorization column
@@ -49,9 +46,9 @@ func (req *AuthDbRequest) Create(client *AuthorizationColumn) error {
 	}
 	defer db.Close()
 
-	sqlQuery := `INSERT INTO authorization_information where id = $1`
+	sqlQuery := `INSERT INTO authorization_information VALUES ($1, $2)`
 
-	_, err := db.Exec(sqlQuery, client.ID, client.AuthorizedClients)
+	_, err := db.Exec(sqlQuery, client.UserId, client.AuthorizedClients)
 	if err != nil {
 		return err
 	}
@@ -67,8 +64,8 @@ func (req *AuthDbRequest) Update(client *AuthorizationColumn) error {
 	}
 	defer db.Close()
 
-	sqlQuery := `UPDATE authorization_information SET authorizedClients = $1 WHERE id = $2`
-	_, err := db.Exec(sqlQuery, client.AuthorizedClients, client.ID)
+	sqlQuery := `UPDATE authorization_information SET authorizedclients = $1 WHERE userID = $2`
+	_, err := db.Exec(sqlQuery, client.AuthorizedClients, client.UserId)
 	if err != nil {
 		return err
 	}
