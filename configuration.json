@@ -1,4 +1,5 @@
 {
 	"expireDuration": 3600,
-	"identityServiceAddress": "localhost:3005"
+	"identityServiceAddress": "localhost:3005",
+	"authorizationServiceAddress": "localhost:3020"
 }
