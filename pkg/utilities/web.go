@@ -1,8 +1,9 @@
 package utilities
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
+	"time"
 )
 
 // GetParam gets a parameter from the desired request
@@ -19,4 +20,15 @@ func DecodeBody(req *http.Request, model interface{}) {
 	decoder := json.NewDecoder(req.Body)
 
 	decoder.Decode(model)
+}
+
+// CreateCookie creates a http web cookie
+func CreateCookie(name string, domain string, path string, expires time.Time, value string) *http.Cookie {
+	return &http.Cookie{
+		Name:    name,
+		Domain:  domain,
+		Path:    path,
+		Expires: expires,
+		Value:   value,
+	}
 }
