@@ -30,7 +30,7 @@ func (req *Defaults) handleGrantAuthorizationCode(request *lib.AuthTokenRequest)
 
 	// refresh token creation
 	refreshToken := lib.CreateRefreshToken(request.ClientID, decodedCodeToken.UserID, decodedCodeToken.Scope)
-	signedRefreshToken := refreshToken.ToJWT(request.ClientSecret)
+	signedRefreshToken := refreshToken.ToJWT(req.Environment.JWTSecret)
 
 	return lib.CreateAccessTokenResponse(signedToken, lib.BearerToken, duration, signedRefreshToken), nil
 }
@@ -40,7 +40,7 @@ func (req *Defaults) handleGrantRefreshToken(request *lib.AuthTokenRequest) (*li
 		lib.CreateError(lib.InvalidRequest, "refresh token is requried for the refresh token grant")
 	}
 
-	refreshToken := lib.DecodeSignedRefreshToken(request.ClientSecret, request.RefreshToken)
+	refreshToken := lib.DecodeSignedRefreshToken(req.Environment.JWTSecret, request.RefreshToken)
 	if refreshToken == nil {
 		lib.CreateError(lib.InvalidToken, "invalid token")
 	}
@@ -48,7 +48,7 @@ func (req *Defaults) handleGrantRefreshToken(request *lib.AuthTokenRequest) (*li
 	// ~ access token creation
 	duration := req.Configuration.ExpireDuration
 	accessToken := lib.CreateAccessToken(request.ClientID, refreshToken.ClientID, duration, refreshToken.Scope)
-	signedToken := accessToken.ToJWT(request.ClientSecret)
+	signedToken := accessToken.ToJWT(req.Environment.JWTSecret)
 
 	return lib.CreateAccessTokenResponse(signedToken, lib.BearerToken, duration, request.RefreshToken), nil
 }
