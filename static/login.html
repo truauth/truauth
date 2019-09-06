@@ -197,8 +197,12 @@
     </div>
     {{ .Script }}
     <script>
-        const urlParams = new URLSearchParams(window.location.search)
-        document.loginForm.action = `/code?${urlParams.toString()}`
+        const urlParams = new URLSearchParams(window.location.search)  
+        if(urlParams.get('response_type') == "code") {
+            document.loginForm.action = `/code?${urlParams.toString()}`
+        } else {
+            document.loginForm.action = `/token?${urlParams.toString()}`
+        }
     </script>
 </body>
 
