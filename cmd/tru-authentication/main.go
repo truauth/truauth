@@ -9,6 +9,7 @@ import (
 	grpcservices "github.com/truauth/truauth/cmd/tru-authentication/grpcservices"
 	"github.com/truauth/truauth/pkg/middleware"
 	"github.com/truauth/truauth/pkg/settings"
+	"github.com/truauth/truauth/pkg/utilities"
 	webserve "github.com/truauth/truauth/pkg/web-serve"
 )
 
@@ -19,6 +20,7 @@ type Defaults struct {
 	AuthorizationClient *grpcservices.AuthorizationClient
 	Environment         *settings.Environment
 	Configuration       *settings.Configuration
+	SessionID           string
 }
 
 func main() {
@@ -53,5 +55,6 @@ func initDefaults() *Defaults {
 		AuthorizationClient: gRPCAuthorizationClient,
 		Environment:         env,
 		Configuration:       config,
+		SessionID:           utilities.UUID(),
 	}
 }
