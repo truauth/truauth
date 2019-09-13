@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -11,6 +12,7 @@ import (
 	lib "github.com/truauth/truauth/pkg/auth-lib"
 	grpcAuthorization "github.com/truauth/truauth/pkg/grpc-authorization"
 	grpcIdentity "github.com/truauth/truauth/pkg/grpc-identity"
+	"github.com/truauth/truauth/pkg/utilities"
 	webserve "github.com/truauth/truauth/pkg/web-serve"
 )
 
@@ -27,6 +29,13 @@ func (req *Defaults) AuthPage(ctx *gin.Context) {
 	if validateErr != nil {
 		ctx.JSON(http.StatusUnauthorized, validateErr)
 		return
+	}
+
+	// SSO check
+	if utilities.ArrContainsString(authRequest.Scope, "sso") {
+		if exit := req.HandleSSO(ctx, authRequest); exit {
+			return
+		}
 	}
 
 	pageTemplate := req.SitePages.RetrieveFile("login").Template
@@ -98,6 +107,60 @@ func (req *Defaults) CreateAuthCode(ctx *gin.Context) {
 // CreateAuthToken creates an auth token
 func (req *Defaults) CreateAuthToken(ctx *gin.Context) {
 	token, err := lib.InitAuthTokenRequest(ctx.Request)
+
+	// todo: clean this up.
+	// do a better check to see if implict flow should be enabled,
+	// e.g fall back on init auth code check if initauthtoken fails.
+	if err != nil { // ~ implicit flow,
+		request, err := lib.InitAuthCode(ctx.Request)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, err)
+			return
+		}
+
+		credentials := helpers.MarshalCredentialsFromForm(ctx.Request)
+		// check & resolve the identity
+		if resp, err := req.IdentityClient.Client.ValidateUserIdentity(ctx, credentials); err != nil || !resp.GetSuccess() {
+			pageTemplate := req.SitePages.RetrieveFile("login").Template
+
+			descript := "Error: Invalid Credentials"
+
+			if err != nil {
+				descript = "An Internal Error has Occurred While Logging In"
+			}
+
+			pageTemplate.Execute(ctx.Writer, webserve.OutTemplate{
+				Error:            true,
+				ErrorDescription: descript,
+				Script:           webserve.DevError(err.Error()),
+			})
+			return
+		}
+
+		// ~ access token creation
+		duration := req.Configuration.ExpireDuration
+		accessToken := lib.CreateAccessToken(request.ClientID, credentials.Username, duration, strings.Join(request.Scope, " "))
+		signedToken := accessToken.ToJWT(req.Environment.JWTSecret)
+
+		// refresh token creation
+		refreshToken := lib.CreateRefreshToken(request.ClientID, credentials.Username, strings.Join(request.Scope, " "))
+		signedRefreshToken := refreshToken.ToJWT(req.Environment.JWTSecret)
+
+		resolvedAccessToken := lib.CreateAccessTokenResponse(signedToken, lib.BearerToken, duration, signedRefreshToken)
+
+		tokenSet := fmt.Sprintf("token_id=%s", resolvedAccessToken.ID)
+		if strings.Contains(request.ResponseType, "token") {
+			tokenSet = fmt.Sprintf("%s&token=%s", resolvedAccessToken.AccessToken)
+		}
+
+		redirect := fmt.Sprintf("%s?%s%s&state=%s", request.RedirectURI, tokenSet, request.State)
+
+		req.CreateSSOToken(ctx, signedRefreshToken, credentials.Username)
+		http.Redirect(ctx.Writer, ctx.Request, redirect, http.StatusFound)
+		return
+	}
+	// ~ end of implicit flow.
+
 	if exit := helpers.CheckResponseError(ctx, err, token.RedirectURI, ""); exit {
 		return
 	}
