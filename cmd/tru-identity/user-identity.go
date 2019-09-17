@@ -37,7 +37,7 @@ func (server *ServiceRequest) RegisterUserIdentity(ctx context.Context, request 
 	err = pgUserReq.DirectCreate(request)
 
 	return &grpcIdentity.SuccessResponse{
-		Success: err != nil,
+		Success: err == nil,
 	}, err
 }
 
@@ -58,6 +58,6 @@ func (server *ServiceRequest) ValidateUserIdentity(ctx context.Context, request 
 	bcryptErr := bcrypt.CompareHashAndPassword([]byte(user.GetPassword()), []byte(request.GetPassword()))
 
 	return &grpcIdentity.SuccessResponse{
-		Success: bcryptErr != nil,
+		Success: bcryptErr == nil,
 	}, bcryptErr
 }

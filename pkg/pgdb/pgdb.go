@@ -32,7 +32,6 @@ func CreateSession(creds *DbCreds) *sql.DB {
 // FetchCreds fetches the db credentials from local en
 func FetchCreds() *DbCreds {
 	creds := &DbCreds{}
-
 	settings.Init(creds, "postgres_env")
 
 	return creds

@@ -21,7 +21,7 @@ type CodeToken struct {
 // CreateCodeToken creates a code token
 func CreateCodeToken(request *AuthCodeRequest, userID string) *CodeToken {
 	return &CodeToken{
-		Expire:      time.Now().Add(time.Second * 30).Unix(),
+		Expire:      time.Now().Add(time.Second * 60).Unix(),
 		UserID:      userID,
 		RedirectURI: request.RedirectURI,
 		Scope:       strings.Join(request.Scope, " "),
@@ -51,9 +51,12 @@ func (request *CodeToken) ToJWT(secret string) string {
 // DecodeCodeJWT decodes the provided jtw token
 func DecodeCodeJWT(secret string, signedToken string) *CodeToken {
 	claims := jwt.MapClaims{} //switch to using a customClaim struct and nesting standard claims https://godoc.org/github.com/dgrijalva/jwt-go#StandardClaims
-	token, _ := jwt.ParseWithClaims(signedToken, claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(signedToken, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
 	})
+	if err != nil {
+		return nil
+	}
 
 	if !token.Valid {
 		return nil

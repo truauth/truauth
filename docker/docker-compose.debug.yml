@@ -1,0 +1,34 @@
+version: '3'
+services:
+  authentication:
+    build:
+      dockerfile: $PWD/debug.Dockerfile
+    image: truauth/authentication:debug
+    security_opt:
+      - "seccomp:unconfined"
+    ports:
+      - "32100:2345"
+  authorization:
+    build:
+      context: ../cmd/tru-authorization
+      dockerfile: $PWD/debug.Dockerfile
+    image: truauth/authorization:debug
+    env_file:
+      - ../postgres.env
+    networks:
+      - truauth
+    ports:
+      - "32101:2345"
+  identity:
+    build:
+      context: ../cmd/tru-identity
+      dockerfile: $PWD/debug.Dockerfile
+    image: truauth/identity:debug
+    env_file:
+      - ../postgres.env
+    networks:
+      - truauth
+    ports:
+      - "32102:2345"
+networks:
+  truauth:

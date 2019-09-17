@@ -3,8 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+
 
 	grpcservices "github.com/truauth/truauth/cmd/tru-authentication/grpcservices"
 	"github.com/truauth/truauth/pkg/middleware"
@@ -22,9 +26,16 @@ type Defaults struct {
 	Configuration       *settings.Configuration
 	SessionID           string
 }
-
+func init() {
+	_ = godotenv.Load("configuration.env", "default.env", "postgres.env")
+}
 func main() {
-	httpPort := flag.String("p", ":4820", "specificed port to start the http server on")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "4820"
+	}
+
+	httpPort := flag.String("p", ":"+port, "specificed port to start the http server on")
 	req := initDefaults()
 
 	router := gin.Default()
@@ -40,11 +51,22 @@ func main() {
 }
 
 func initDefaults() *Defaults {
-	config := &settings.Configuration{}
-	env := &settings.Environment{}
+	tokenLifetime := os.Getenv("TOKEN_LIFETIME")
+	tokenLifetimeInt, err := strconv.Atoi(tokenLifetime)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(2)
+	}
 
-	settings.Init(config, "configuration")
-	settings.Init(env, "env")
+	config := &settings.Configuration{
+		ExpireDuration:              tokenLifetimeInt,
+		IdentityServiceAddress:      os.Getenv("IDENTITY_SERVICE_ADDRESS"),
+		AuthorizationServiceAddress: os.Getenv("AUTHORIZATION_SERVICE_ADDRESS"),
+	}
+	env := &settings.Environment{
+		JWTSecret:      os.Getenv("JWT_SECRET"),
+		IdentityAPIKey: os.Getenv("IDENTITY_API_KEY"),
+	}
 
 	gRPCIdentityClient := grpcservices.CreateIdentityGRPCClient(config.IdentityServiceAddress)
 	gRPCAuthorizationClient := grpcservices.CreateAuthorizationGRPCClient(config.AuthorizationServiceAddress)

@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/joho/godotenv"
 	"net"
+	"os"
 	"time"
 
 	"google.golang.org/grpc"
@@ -13,10 +15,19 @@ import (
 	"github.com/truauth/truauth/pkg/pgdb"
 )
 
-func main() {
-	port := flag.String("p", "3020", "specified port to start the gRPC server on")
+func init() {
+	_ = godotenv.Load("configuration.env", "default.env", "postgres.env")
+}
 
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", *port))
+func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3020"
+	}
+
+	tcpPort := flag.String("p", port, "specified port to start the gRPC server on")
+
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", *tcpPort))
 	if err != nil {
 		panic(err)
 	}
@@ -27,10 +38,15 @@ func main() {
 	}))
 
 	grpcAuthorization.RegisterAuthorizationServer(grpcServer, &ServiceRequest{
-		PGCreds: pgdb.FetchCreds(),
+		PGCreds: &pgdb.DbCreds{
+			Host:     os.Getenv("POSTGRES_HOST"),
+			User:     os.Getenv("POSTGRES_USER"),
+			Password: os.Getenv("POSTGRES_PASSWORD"),
+			Dbname:   os.Getenv("POSTGRES_DBNAME"),
+		},
 	})
 
-	fmt.Println(fmt.Sprintf("gRPC service started on port %s", *port))
+	fmt.Println(fmt.Sprintf("gRPC service started on port %s", *tcpPort))
 
 	if serveErr := grpcServer.Serve(listener); err != nil {
 		panic(serveErr)

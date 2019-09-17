@@ -15,7 +15,7 @@ func Init(fileNames ...string) Files {
 
 	// todo: remove template brackets on bytes init.
 	for _, fileName := range fileNames {
-		path := fmt.Sprintf("../../static/%s.html", fileName)
+		path := fmt.Sprintf("static/%s.html", fileName)
 		data, err := ioutil.ReadFile(path)
 
 		if err != nil {
