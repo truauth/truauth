@@ -111,7 +111,7 @@ func (req *Defaults) CreateAuthToken(ctx *gin.Context) {
 	// todo: clean this up.
 	// do a better check to see if implict flow should be enabled,
 	// e.g fall back on init auth code check if initauthtoken fails.
-	if err != nil { // ~ implicit flow,
+	if err != nil {
 		request, err := lib.InitAuthCode(ctx.Request)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, err)
@@ -155,11 +155,10 @@ func (req *Defaults) CreateAuthToken(ctx *gin.Context) {
 
 		redirect := fmt.Sprintf("%s?%s%s&state=%s", request.RedirectURI, tokenSet, request.State)
 
-		req.CreateSSOToken(ctx, signedRefreshToken, credentials.Username)
+		req.CreateSSOToken(ctx, resolvedAccessToken.AccessToken, credentials.Username)
 		http.Redirect(ctx.Writer, ctx.Request, redirect, http.StatusFound)
 		return
 	}
-	// ~ end of implicit flow.
 
 	if exit := helpers.CheckResponseError(ctx, err, token.RedirectURI, ""); exit {
 		return

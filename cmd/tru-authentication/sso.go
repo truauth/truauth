@@ -37,7 +37,7 @@ func (req *Defaults) HandleSSO(ctx *gin.Context, authRequest *lib.AuthCodeReques
 			return true
 		}
 
-		redirect := fmt.Sprintf("%s?refresh_token=%s&state=%s&sso=true", authRequest.RedirectURI, decodedSSO.Token, authRequest.State)
+		redirect := fmt.Sprintf("%s?token=%s&state=%s&sso=true", authRequest.RedirectURI, decodedSSO.Token, authRequest.State)
 		http.Redirect(ctx.Writer, ctx.Request, redirect, http.StatusFound)
 
 		return true
