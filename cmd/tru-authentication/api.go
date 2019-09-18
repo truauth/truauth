@@ -144,7 +144,7 @@ func (req *Defaults) CreateAuthToken(ctx *gin.Context) {
 
 		// refresh token creation
 		refreshToken := lib.CreateRefreshToken(request.ClientID, credentials.Username, strings.Join(request.Scope, " "))
-		signedRefreshToken := refreshToken.ToJWT(req.Environment.JWTSecret)
+		signedRefreshToken := refreshToken.ToJWT(token.ClientSecret)
 
 		resolvedAccessToken := lib.CreateAccessTokenResponse(signedToken, lib.BearerToken, duration, signedRefreshToken)
 
