@@ -40,7 +40,7 @@ func (req *Defaults) handleGrantRefreshToken(request *lib.AuthTokenRequest) (*li
 		lib.CreateError(lib.InvalidRequest, "refresh token is requried for the refresh token grant")
 	}
 
-	refreshToken := lib.DecodeSignedRefreshToken(req.Environment.JWTSecret, request.RefreshToken)
+	refreshToken := lib.DecodeSignedRefreshToken(request.ClientSecret, request.RefreshToken)
 	if refreshToken == nil {
 		lib.CreateError(lib.InvalidToken, "invalid token")
 	}
