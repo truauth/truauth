@@ -1,6 +1,8 @@
 # Tru-Auth
 Tru-auth is an openid compliant oAuth2.0 authentication service.
 
+## This is still a WIP
+
 The TruAuth authentication service provides 3rd party service authentication to TruAuth resource agents, implementing the [authorization code grant](https://tools.ietf.org/html/rfc6749#section-1.3.1).
 
 Tru-Auth micro-services are implemented in go, on top of gRPC and utilizes postgreSQL.
