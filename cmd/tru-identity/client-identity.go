@@ -25,6 +25,6 @@ func (server *ServiceRequest) RegisterClientIdentity(ctx context.Context, reques
 	err := pgClientReq.DirectCreate(request)
 
 	return &grpcIdentity.SuccessResponse{
-		Success: err != nil,
+		Success: err == nil,
 	}, err
 }

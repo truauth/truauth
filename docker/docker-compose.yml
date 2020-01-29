@@ -1,0 +1,43 @@
+version: '3'
+services:
+  authentication:
+    build:
+      context: ../cmd/tru-authentication
+      dockerfile: $PWD/Dockerfile
+    image: truauth/authentication
+    env_file: 
+      - ../default.env
+      - ../configuration.env
+    volumes:
+      - ../static:/static
+    networks:
+      - truauth
+    ports:
+      - "4820:4820"
+
+  authorization:
+    build:
+      context: ../cmd/tru-authorization
+      dockerfile: $PWD/Dockerfile
+    image: truauth/authorization
+    env_file: 
+      - ../postgres.env
+    networks: 
+      - truauth
+    ports:
+      - "3020:3020"
+         
+  identity:
+    build:
+      context: ../cmd/tru-identity
+      dockerfile: $PWD/Dockerfile
+    image: truauth/identity
+    env_file: 
+      - ../postgres.env
+    networks: 
+      - truauth
+    ports:
+      - "3005:3005"
+
+networks:
+  truauth:

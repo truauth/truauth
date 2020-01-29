@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/joho/godotenv"
 	"net"
+	"os"
 	"time"
 
 	grpcIdentity "github.com/truauth/truauth/pkg/grpc-identity"
@@ -13,8 +15,17 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+func init() {
+	_ = godotenv.Load("configuration.env", "default.env", "postgres.env") // lets condense to one file, or a handful of files .
+}
+
 func main() {
-	tcpPort := flag.String("p", "3005", "specified port to start the gRPC server on")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3005"
+	}
+
+	tcpPort := flag.String("p", port, "specified port to start the gRPC server on")
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", *tcpPort))
 	if err != nil {
@@ -27,7 +38,12 @@ func main() {
 	}))
 
 	grpcIdentity.RegisterIdentityServer(grpcServer, &ServiceRequest{
-		PGCreds: pgdb.FetchCreds(),
+		PGCreds: &pgdb.DbCreds{
+			Host:     os.Getenv("POSTGRES_HOST"),
+			User:     os.Getenv("POSTGRES_USER"),
+			Password: os.Getenv("POSTGRES_PASSWORD"),
+			Dbname:   os.Getenv("POSTGRES_DBNAME"),
+		},
 	})
 	reflection.Register(grpcServer)
 
